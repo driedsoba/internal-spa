@@ -1,0 +1,100 @@
+import { S3Client, ListObjectsV2Command, GetObjectCommand, DeleteObjectCommand, CopyObjectCommand } from '@aws-sdk/client-s3';
+
+const s3Client = new S3Client({});
+
+export const handler = async (event) => {
+  console.log('Event received:', JSON.stringify(event, null, 2));
+
+  const { action, bucket, key, sourceBucket, targetBucket } = JSON.parse(event.body || '{}');
+
+  try {
+    switch (action) {
+      case 'listFiles':
+        return await listAllFiles();
+      case 'deleteFile':
+        return await deleteFile(bucket, key);
+      case 'moveFile':
+        return await moveFile(sourceBucket, key, targetBucket);
+      case 'getFileMetadata':
+        return await getFileMetadata(bucket, key);
+      default:
+        throw new Error('Unknown action');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    return formatResponse(500, { error: error.message });
+  }
+};
+
+async function listAllFiles() {
+  const buckets = ['spa-s3-bucketa', 'spa-s3-bucketb', 'spa-s3-bucketc'];
+  const allFiles = [];
+
+  for (const bucket of buckets) {
+    try {
+      const command = new ListObjectsV2Command({ Bucket: bucket });
+      const response = await s3Client.send(command);
+
+      if (response.Contents) {
+        const files = response.Contents.map(file => ({
+          bucket,
+          key: file.Key,
+          size: file.Size,
+          lastModified: file.LastModified,
+          etag: file.ETag
+        }));
+        allFiles.push(...files);
+      }
+    } catch (error) {
+      console.warn(`Error listing bucket ${bucket}:`, error.message);
+    }
+  }
+
+  return formatResponse(200, { files: allFiles });
+}
+
+async function deleteFile(bucket, key) {
+  const command = new DeleteObjectCommand({ Bucket: bucket, Key: key });
+  await s3Client.send(command);
+  return formatResponse(200, { message: 'File deleted successfully' });
+}
+
+async function moveFile(sourceBucket, key, targetBucket) {
+  // Copy file to target bucket
+  const copyCommand = new CopyObjectCommand({
+    Bucket: targetBucket,
+    Key: key,
+    CopySource: `${sourceBucket}/${key}`
+  });
+  await s3Client.send(copyCommand);
+
+  // Delete from source bucket
+  await deleteFile(sourceBucket, key);
+  return formatResponse(200, { message: 'File moved successfully' });
+}
+
+async function getFileMetadata(bucket, key) {
+  const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+  const response = await s3Client.send(command);
+
+  return formatResponse(200, {
+    metadata: {
+      contentType: response.ContentType,
+      contentLength: response.ContentLength,
+      lastModified: response.LastModified,
+      etag: response.ETag
+    }
+  });
+}
+
+function formatResponse(statusCode, body) {
+  return {
+    statusCode,
+    headers: {
+      'Access-Control-Allow-Origin': 'https://spa.chatwithjunle.com',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Methods': 'OPTIONS,POST'
+    },
+    body: JSON.stringify(body)
+  };
+}
