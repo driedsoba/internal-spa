@@ -7,15 +7,17 @@ A simple file management system with AWS S3 integration for internal use.
 Web application for uploading and managing files across multiple S3 buckets. Includes an admin portal for bucket operations and file management.
 
 ## Project Structure
-├── spa.chatwithjunle.com/           # Frontend files
-│   ├── index.html                   # File upload interface
-│   └── admin.html                   # Admin portal
-├── lambda/                          # AWS Lambda functions
-│   ├── DirectS3Upload.mjs          # Generate upload URLs
-│   ├── AdminFileManager.mjs        # File operations
-│   ├── BucketAdministrator.mjs     # Bucket management
-│   └── ListS3Buckets.mjs          # List available buckets
-└── README.md
+```
+spa.chatwithjunle.com/           # Frontend files
+├── index.html                   # File upload interface
+└── admin.html                   # Admin portal
+lambda/                          # AWS Lambda functions
+├── DirectS3Upload.mjs           # Generate upload URLs
+├── AdminFileManager.mjs         # File operations
+├── BucketAdministrator.mjs      # Bucket management
+└── ListS3Buckets.mjs            # List available buckets
+README.md
+```
 
 ## Features
 
