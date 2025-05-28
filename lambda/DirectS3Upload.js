@@ -9,6 +9,7 @@ const maxFileSize = 1 * 1024 * 1024; // 1 MB
 
 exports.handler = async (event) => {
   try {
+
     // Parse the request body
     const body = JSON.parse(event.body);
     const { fileName, contentType, bucket, path, fileSize } = body;

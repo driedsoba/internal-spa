@@ -1,4 +1,4 @@
-import { S3Client, ListObjectsV2Command, GetObjectCommand, DeleteObjectCommand, CopyObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, ListObjectsV2Command, GetObjectCommand, DeleteObjectCommand, CopyObjectCommand, ListBucketsCommand } from '@aws-sdk/client-s3';
 
 const s3Client = new S3Client({});
 
@@ -27,7 +27,12 @@ export const handler = async (event) => {
 };
 
 async function listAllFiles() {
-  const buckets = ['spa-s3-bucketa', 'spa-s3-bucketb', 'spa-s3-bucketc'];
+  const listCommand = new ListBucketsCommand({});
+  const bucketData = await s3Client.send(listCommand);
+  const buckets = bucketData.Buckets
+    .map(bucket => bucket.Name)
+    .filter(name => name.startsWith('spa-s3-') || name.includes('upload'));
+
   const allFiles = [];
 
   for (const bucket of buckets) {

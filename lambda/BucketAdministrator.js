@@ -1,4 +1,4 @@
-import { S3Client, CreateBucketCommand, DeleteBucketCommand, PutBucketPolicyCommand, GetBucketPolicyCommand, PutBucketLifecycleConfigurationCommand } from '@aws-sdk/client-s3';
+import { S3Client, CreateBucketCommand, DeleteBucketCommand, PutBucketPolicyCommand, GetBucketPolicyCommand, PutBucketLifecycleConfigurationCommand, PutBucketCorsCommand } from '@aws-sdk/client-s3';
 
 const s3Client = new S3Client({});
 
@@ -29,6 +29,7 @@ export const handler = async (event) => {
 };
 
 async function createBucket(bucketName) {
+  // Create Bucket
   const command = new CreateBucketCommand({
     Bucket: bucketName,
     CreateBucketConfiguration: {
@@ -36,7 +37,21 @@ async function createBucket(bucketName) {
     }
   });
   await s3Client.send(command);
-  return formatResponse(200, { message: 'Bucket created successfully' });
+
+  // Set CORS header
+  const corsCommand = new PutBucketCorsCommand({
+    Bucket: bucketName,
+    CORSConfiguration: {
+      CORSRules: [{
+        AllowedHeaders: ["*"],
+        AllowedMethods: ["PUT", "GET", "POST"],
+        AllowedOrigins: ["https://spa.chatwithjunle.com"],
+        ExposeHeaders: ["ETag", "x-amz-server-side-encryption", "x-amz-request-id", "x-amz-id-2"]
+      }]
+    }
+  });
+  await s3Client.send(corsCommand);
+  return formatResponse(200, { message: 'Bucket created with CORS configured' });
 }
 
 async function deleteBucket(bucketName) {

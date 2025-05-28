@@ -117,6 +117,22 @@
         }
         tr:hover { background: linear-gradient(135deg, #f8f9fa, #ffffff); }
         
+        table th:nth-child(2), 
+        table td:nth-child(2) { 
+            min-width: 120px; 
+            white-space: nowrap; 
+        }
+
+        table th:nth-child(1), 
+        table td:nth-child(1) { 
+            width: 30%; 
+        }
+
+        table th:nth-child(5), 
+        table td:nth-child(5) { 
+            width: 25%; 
+        }
+        
         .file-actions { white-space: nowrap; }
         .file-actions button { 
             margin: 0 3px; padding: 10px 16px; border: none; border-radius: 6px; 
@@ -184,6 +200,17 @@
             transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
         }
         
+        .toast {
+            position: fixed; top: 20px; right: 20px; padding: 15px 25px;
+            border-radius: 8px; color: white; z-index: 1000; font-weight: 600;
+            transform: translateX(100%); transition: transform 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .toast.show { transform: translateX(0); }
+        .toast.success { background: #27ae60; }
+        .toast.error { background: #e74c3c; }
+        .toast.info { background: #3498db; }
+        
         footer { 
             text-align: center; margin-top: 50px; color: #7f8c8d; font-size: 14px; 
             padding-top: 30px; border-top: 2px solid #eaeaea;
@@ -237,6 +264,7 @@
         <section class="admin-section">
             <h2>File Management</h2>
             <button id="refreshFiles" onclick="loadFiles()">Refresh Files</button>
+            <input type="text" id="fileSearch" placeholder="🔍 Search files..." oninput="filterFiles()" style="width: 100%; margin-bottom: 15px; margin-top: 15px; padding: 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
             
             <div id="fileList">
                 <div class="loading">🔄 Loading files...</div>
@@ -274,10 +302,33 @@
     </div>
 
     <script>
+        let allFiles = []; // Store all files for filtering
+
         document.addEventListener('DOMContentLoaded', function() {
             loadFiles();
             loadBuckets();
         });
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function filterFiles() {
+            const searchTerm = document.getElementById('fileSearch').value.toLowerCase();
+            const filteredFiles = allFiles.filter(file => 
+                file.key.toLowerCase().includes(searchTerm) || 
+                file.bucket.toLowerCase().includes(searchTerm)
+            );
+            displayFiles(filteredFiles);
+        }
 
         async function loadFiles() {
             document.getElementById('fileList').innerHTML = '<div class="loading">Loading files...</div>';
@@ -291,10 +342,12 @@
                 
                 const data = await response.json();
                 const files = data.files || [];
+                allFiles = files; // Store for filtering
                 updateStats(files);
                 displayFiles(files);
             } catch (error) {
                 document.getElementById('fileList').innerHTML = '<div class="error">❌ Error loading files: ' + error.message + '</div>';
+                showToast('Error loading files', 'error');
             }
         }
 
@@ -316,7 +369,12 @@
                 } else {
                     bucketListDiv.innerHTML = buckets.map(bucket => `
                         <div class="bucket-item">
-                            ${bucket}
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: #2c3e50;">${bucket}</div>
+                                </div>
+                                <div style="color: #27ae60; font-size: 12px;">✓ Ready</div>
+                            </div>
                         </div>
                     `).join('');
                 }
@@ -331,6 +389,7 @@
                 
             } catch (error) {
                 bucketListDiv.innerHTML = '<div class="error">❌ Error loading buckets: ' + error.message + '</div>';
+                showToast('Error loading buckets', 'error');
             }
         }
 
@@ -338,14 +397,18 @@
             const bucketName = document.getElementById('newBucketName').value.trim();
             
             if (!bucketName) {
-                alert('❌ Please enter a bucket name');
+                showToast('Please enter a bucket name', 'error');
                 return;
             }
             
             if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(bucketName) || bucketName.length < 3 || bucketName.length > 63) {
-                alert('❌ Invalid bucket name. Use lowercase letters, numbers, and hyphens only (3-63 characters)');
+                showToast('Invalid bucket name. Use lowercase letters, numbers, and hyphens only (3-63 characters)', 'error');
                 return;
             }
+            
+            const createBtn = document.querySelector('.create-btn');
+            createBtn.disabled = true;
+            createBtn.innerHTML = '⏳ Creating...';
             
             try {
                 const response = await fetch('https://1uulda0imb.execute-api.ap-southeast-1.amazonaws.com/prod/admin/buckets', {
@@ -357,14 +420,17 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    alert('✅ Bucket created successfully!');
+                    showToast('Bucket created successfully!', 'success');
                     document.getElementById('newBucketName').value = '';
                     loadBuckets();
                 } else {
-                    alert('❌ Error: ' + (data.error || 'Failed to create bucket'));
+                    showToast('Error: ' + (data.error || 'Failed to create bucket'), 'error');
                 }
             } catch (error) {
-                alert('❌ Error creating bucket: ' + error.message);
+                showToast('Error creating bucket: ' + error.message, 'error');
+            } finally {
+                createBtn.disabled = false;
+                createBtn.innerHTML = 'Create Bucket';
             }
         }
 
@@ -373,14 +439,18 @@
             const days = document.getElementById('lifecycleDays').value;
             
             if (!bucket || !days) {
-                alert('❌ Please select a bucket and enter number of days');
+                showToast('Please select a bucket and enter number of days', 'error');
                 return;
             }
             
             if (days < 1) {
-                alert('❌ Days must be greater than 0');
+                showToast('Days must be greater than 0', 'error');
                 return;
             }
+            
+            const lifecycleBtn = document.querySelector('.lifecycle-btn');
+            lifecycleBtn.disabled = true;
+            lifecycleBtn.innerHTML = '⏳ Setting...';
             
             try {
                 const lifecycleConfig = {
@@ -389,7 +459,7 @@
                         Filter: {},
                         Status: 'Enabled',
                         Expiration: {
-                            Days: days
+                            Days: parseInt(days)
                         }
                     }]
                 };
@@ -403,13 +473,16 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    alert(`✅ Lifecycle rule set! Files in ${bucket} will be automatically deleted after ${days} days.`);
+                    showToast(`Lifecycle rule set! Files in ${bucket} will be deleted after ${days} days.`, 'success');
                     document.getElementById('lifecycleDays').value = '';
                 } else {
-                    alert('❌ Error: ' + (data.error || 'Failed to set lifecycle rules'));
+                    showToast('Error: ' + (data.error || 'Failed to set lifecycle rules'), 'error');
                 }
             } catch (error) {
-                alert('❌ Error setting lifecycle rules: ' + error.message);
+                showToast('Error setting lifecycle rules: ' + error.message, 'error');
+            } finally {
+                lifecycleBtn.disabled = false;
+                lifecycleBtn.innerHTML = 'Set Auto-Delete';
             }
         }
 
@@ -477,23 +550,62 @@
                     body: JSON.stringify({ action: 'deleteFile', bucket, key })
                 });
                 
-                alert('✅ File deleted successfully');
+                showToast('File deleted successfully', 'success');
                 loadFiles();
             } catch (error) {
-                alert('❌ Error deleting file: ' + error.message);
+                showToast('Error deleting file: ' + error.message, 'error');
             }
         }
 
         function showMoveDialog(bucket, key) {
-            const targetBucket = prompt(`📁 Move "${key}" from ${bucket} to which bucket?\n\n🗂️ Available buckets:\n• spa-s3-bucketa\n• spa-s3-bucketb\n• spa-s3-bucketc\n\nEnter target bucket name:`);
+            const lifecycleSelect = document.getElementById('lifecycleBucket');
+            const availableBuckets = Array.from(lifecycleSelect.options)
+                .slice(1) // Skip first "Select bucket" option
+                .map(option => option.value)
+                .filter(value => value && value !== bucket);
             
-            if (targetBucket && targetBucket !== bucket) {
-                if (['spa-s3-bucketa', 'spa-s3-bucketb', 'spa-s3-bucketc'].includes(targetBucket)) {
-                    moveFile(bucket, key, targetBucket);
-                } else {
-                    alert('❌ Invalid bucket name. Please use one of the listed buckets.');
-                }
+            if (availableBuckets.length === 0) {
+                showToast('No other buckets available for moving files', 'error');
+                return;
             }
+            
+            // Create modal dialog with dropdown
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                background: rgba(0,0,0,0.5); z-index: 2000; display: flex; 
+                align-items: center; justify-content: center;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: white; padding: 30px; border-radius: 12px; min-width: 400px;">
+                    <h3 style="margin-bottom: 20px;">Move "${key}"</h3>
+                    <p style="margin-bottom: 15px;">From: <strong>${bucket}</strong></p>
+                    <p style="margin-bottom: 15px;">To:</p>
+                    <select id="targetBucketSelect" style="width: 100%; margin-bottom: 20px; padding: 12px; border: 2px solid #ddd; border-radius: 8px;">
+                        <option value="">-- Select Target Bucket --</option>
+                        ${availableBuckets.map(b => `<option value="${b}">${b}</option>`).join('')}
+                    </select>
+                    <div style="text-align: right; gap: 10px; display: flex; justify-content: flex-end;">
+                        <button onclick="this.closest('.modal').remove()" style="background: #95a5a6; padding: 10px 20px; border: none; border-radius: 6px; color: white;">Cancel</button>
+                        <button onclick="confirmMove('${bucket}', '${key}')" style="background: #3498db; padding: 10px 20px; border: none; border-radius: 6px; color: white;">Move File</button>
+                    </div>
+                </div>
+            `;
+            
+            modal.className = 'modal';
+            document.body.appendChild(modal);
+        }
+
+        function confirmMove(sourceBucket, key) {
+            const targetBucket = document.getElementById('targetBucketSelect').value;
+            if (!targetBucket) {
+                showToast('Please select a target bucket', 'error');
+                return;
+            }
+            
+            document.querySelector('.modal').remove();
+            moveFile(sourceBucket, key, targetBucket);
         }
 
         async function moveFile(sourceBucket, key, targetBucket) {
@@ -504,15 +616,15 @@
                     body: JSON.stringify({ action: 'moveFile', sourceBucket, key, targetBucket })
                 });
                 
-                alert(`✅ File moved successfully from ${sourceBucket} to ${targetBucket}`);
+                showToast(`File moved successfully from ${sourceBucket} to ${targetBucket}`, 'success');
                 loadFiles();
             } catch (error) {
-                alert('❌ Error moving file: ' + error.message);
+                showToast('Error moving file: ' + error.message, 'error');
             }
         }
 
         function downloadFile(bucket, key) {
-            alert(`📥 Download feature coming soon for "${key}"\n\nThis will generate a secure download link.`);
+            showToast('Download feature coming soon', 'info');
         }
 
         function formatFileSize(bytes) {
