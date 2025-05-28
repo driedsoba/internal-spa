@@ -3,16 +3,38 @@ const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 const s3 = new S3Client();
 
+// Configure allowed file types and max size (in bytes)
+const allowedTypes = ['image/jpeg', 'application/pdf', 'text/plain'];
+const maxFileSize = 1 * 1024 * 1024; // 1 MB
+
 exports.handler = async (event) => {
   try {
     // Parse the request body
     const body = JSON.parse(event.body);
-    const { fileName, contentType, bucket, path } = body;
+    const { fileName, contentType, bucket, path, fileSize } = body;
 
-    // Validate bucket selection
-    const allowedBuckets = ['spa-s3-bucketa', 'spa-s3-bucketb', 'spa-s3-bucketc'];
+    // Dynamic bucket validation
+    const { ListBucketsCommand } = require("@aws-sdk/client-s3");
+
+    // Get allowed buckets dynamically
+    const listCommand = new ListBucketsCommand({});
+    const bucketData = await s3.send(listCommand);
+    const allowedBuckets = bucketData.Buckets
+      .map(bucket => bucket.Name)
+      .filter(name => name.startsWith('spa-s3-') || name.includes('upload'));
+
     if (!allowedBuckets.includes(bucket)) {
       return formatResponse(400, { error: 'Invalid bucket selection' });
+    }
+
+    // Validate file type
+    if (!allowedTypes.includes(contentType)) {
+      return formatResponse(400, { error: 'File type not allowed' });
+    }
+
+    // Validate file size if provided
+    if (fileSize && fileSize > maxFileSize) {
+      return formatResponse(400, { error: `File size exceeds ${maxFileSize / (1024 * 1024)} MB limit` });
     }
 
     // Format the full path
