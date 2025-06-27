@@ -4,7 +4,7 @@ const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const s3 = new S3Client();
 
 // Configure allowed file types and max size (in bytes)
-const allowedTypes = ['image/jpeg', 'application/pdf', 'text/plain'];
+const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf', 'text/plain'];
 const maxFileSize = 1 * 1024 * 1024; // 1 MB
 
 exports.handler = async (event) => {
@@ -22,7 +22,7 @@ exports.handler = async (event) => {
     const bucketData = await s3.send(listCommand);
     const allowedBuckets = bucketData.Buckets
       .map(bucket => bucket.Name)
-      .filter(name => name.startsWith('spa-s3-') || name.includes('upload'));
+      .filter(name => name.startsWith('dev') || name.includes('upload'));
 
     if (!allowedBuckets.includes(bucket)) {
       return formatResponse(400, { error: 'Invalid bucket selection' });
@@ -67,7 +67,7 @@ function formatResponse(statusCode, body) {
   return {
     statusCode: statusCode,
     headers: {
-      'Access-Control-Allow-Origin': 'https://spa.chatwithjunle.com',
+      'Access-Control-Allow-Origin': 'https://dev.chatwithjunle.com',
       'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date',
       'Access-Control-Allow-Methods': 'OPTIONS,POST'
     },

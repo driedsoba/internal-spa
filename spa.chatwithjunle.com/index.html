@@ -310,7 +310,7 @@
                 bucketSelect.disabled = true;
                 refreshButton.disabled = true;
                 
-                fetch('https://1uulda0imb.execute-api.ap-southeast-1.amazonaws.com/prod/buckets')
+                fetch('https://uawp8jbo99.execute-api.ap-southeast-1.amazonaws.com/prod/buckets')
                     .then(response => response.json())
                     .then(data => {
                         bucketSelect.innerHTML = '<option value="">-- Select Bucket --</option>';
@@ -486,7 +486,7 @@
                     
                     try {
                         // Get pre-signed URL
-                        const response = await fetch('https://1uulda0imb.execute-api.ap-southeast-1.amazonaws.com/prod/upload', {
+                        const response = await fetch('https://uawp8jbo99.execute-api.ap-southeast-1.amazonaws.com/prod/upload', {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
                             body: JSON.stringify({

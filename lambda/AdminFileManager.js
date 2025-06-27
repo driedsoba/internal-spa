@@ -1,4 +1,5 @@
-import { S3Client, ListObjectsV2Command, GetObjectCommand, DeleteObjectCommand, CopyObjectCommand, ListBucketsCommand } from '@aws-sdk/client-s3';
+import { S3Client, ListObjectsV2Command, GetObjectCommand, DeleteObjectCommand, CopyObjectCommand, ListBucketsCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 const s3Client = new S3Client({});
 
@@ -17,6 +18,8 @@ export const handler = async (event) => {
         return await moveFile(sourceBucket, key, targetBucket);
       case 'getFileMetadata':
         return await getFileMetadata(bucket, key);
+      case 'downloadFile':
+        return await downloadFile(bucket, key);
       default:
         throw new Error('Unknown action');
     }
@@ -31,7 +34,7 @@ async function listAllFiles() {
   const bucketData = await s3Client.send(listCommand);
   const buckets = bucketData.Buckets
     .map(bucket => bucket.Name)
-    .filter(name => name.startsWith('spa-s3-') || name.includes('upload'));
+    .filter(name => name.startsWith('dev') || name.includes('upload'));
 
   const allFiles = [];
 
@@ -92,11 +95,56 @@ async function getFileMetadata(bucket, key) {
   });
 }
 
+async function downloadFile(bucket, key) {
+  try {
+    // Validate input parameters
+    if (!bucket || !key) {
+      throw new Error('Missing required parameters: bucket and key');
+    }
+
+    // Check if the object exists first
+    try {
+      const headCommand = new HeadObjectCommand({
+        Bucket: bucket,
+        Key: key
+      });
+      await s3Client.send(headCommand);
+    } catch (headError) {
+      console.error('Object not found:', headError);
+      throw new Error('File not found');
+    }
+
+    // Generate simple presigned URL for download
+    const getObjectCommand = new GetObjectCommand({
+      Bucket: bucket,
+      Key: key
+    });
+
+    const downloadURL = await getSignedUrl(s3Client, getObjectCommand, {
+      expiresIn: 300 // URL expires in 5 minutes
+    });
+
+    console.log('Generated download URL for:', { bucket, key });
+
+    return formatResponse(200, {
+      downloadURL: downloadURL,
+      bucket: bucket,
+      key: key,
+      expiresIn: 300,
+      filename: key.split('/').pop()
+    });
+
+  } catch (error) {
+    console.error('Error generating download URL:', error);
+    throw new Error(`Failed to generate download URL: ${error.message}`);
+  }
+}
+
 function formatResponse(statusCode, body) {
   return {
     statusCode,
     headers: {
-      'Access-Control-Allow-Origin': 'https://spa.chatwithjunle.com',
+      'Access-Control-Allow-Origin': 'https://dev.chatwithjunle.com',
       'Access-Control-Allow-Headers': 'Content-Type',
       'Access-Control-Allow-Methods': 'OPTIONS,POST'
     },

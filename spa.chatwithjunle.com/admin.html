@@ -334,7 +334,7 @@
             document.getElementById('fileList').innerHTML = '<div class="loading">Loading files...</div>';
             
             try {
-                const response = await fetch('https://1uulda0imb.execute-api.ap-southeast-1.amazonaws.com/prod/admin', {
+                const response = await fetch('https://uawp8jbo99.execute-api.ap-southeast-1.amazonaws.com/prod/admin', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'listFiles' })
@@ -358,7 +358,7 @@
             bucketListDiv.innerHTML = '<div class="loading">Loading buckets...</div>';
             
             try {
-                const response = await fetch('https://1uulda0imb.execute-api.ap-southeast-1.amazonaws.com/prod/buckets');
+                const response = await fetch('https://uawp8jbo99.execute-api.ap-southeast-1.amazonaws.com/prod/buckets');
                 const data = await response.json();
                 const buckets = data.buckets || [];
                 
@@ -411,7 +411,7 @@
             createBtn.innerHTML = '⏳ Creating...';
             
             try {
-                const response = await fetch('https://1uulda0imb.execute-api.ap-southeast-1.amazonaws.com/prod/admin/buckets', {
+                const response = await fetch('https://uawp8jbo99.execute-api.ap-southeast-1.amazonaws.com/prod/admin/buckets', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'createBucket', bucketName })
@@ -464,7 +464,7 @@
                     }]
                 };
 
-                const response = await fetch('https://1uulda0imb.execute-api.ap-southeast-1.amazonaws.com/prod/admin/buckets', {
+                const response = await fetch('https://uawp8jbo99.execute-api.ap-southeast-1.amazonaws.com/prod/admin/buckets', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'setLifecycle', bucketName: bucket, lifecycleConfig })
@@ -544,7 +544,7 @@
             if (!confirm(`⚠️ Are you sure you want to delete "${key}" from ${bucket}?\n\nThis action cannot be undone.`)) return;
             
             try {
-                await fetch('https://1uulda0imb.execute-api.ap-southeast-1.amazonaws.com/prod/admin', {
+                await fetch('https://uawp8jbo99.execute-api.ap-southeast-1.amazonaws.com/prod/admin', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'deleteFile', bucket, key })
@@ -610,7 +610,7 @@
 
         async function moveFile(sourceBucket, key, targetBucket) {
             try {
-                await fetch('https://1uulda0imb.execute-api.ap-southeast-1.amazonaws.com/prod/admin', {
+                await fetch('https://uawp8jbo99.execute-api.ap-southeast-1.amazonaws.com/prod/admin', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'moveFile', sourceBucket, key, targetBucket })
@@ -623,8 +623,62 @@
             }
         }
 
-        function downloadFile(bucket, key) {
-            showToast('Download feature coming soon', 'info');
+async function downloadFile(bucket, key) {
+            showToast('Preparing download...', 'info');
+            
+            try {
+                // Step 1: Get the presigned URL from Lambda
+                const response = await fetch('https://uawp8jbo99.execute-api.ap-southeast-1.amazonaws.com/prod/admin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: 'downloadFile',
+                        bucket: bucket, 
+                        key: key 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.downloadURL) {
+                    showToast('Downloading file...', 'info');
+                    
+                    // Step 2: Fetch the actual file using the presigned URL
+                    const fileResponse = await fetch(data.downloadURL, {
+                        method: 'GET',
+                        mode: 'cors'
+                    });
+                    
+                    if (!fileResponse.ok) {
+                        throw new Error(`Failed to download file: ${fileResponse.status}`);
+                    }
+                    
+                    // Step 3: Convert to blob and force download
+                    const blob = await fileResponse.blob();
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    
+                    // Step 4: Create download link and trigger download
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.download = data.filename || key.split('/').pop();
+                    link.style.display = 'none';
+                    
+                    // Add to DOM, click, and remove
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // Clean up the blob URL
+                    window.URL.revokeObjectURL(downloadUrl);
+                    
+                    showToast(`Download completed: ${data.filename || key}`, 'success');
+                } else {
+                    throw new Error(data.error || 'Failed to generate download link');
+                }
+            } catch (error) {
+                console.error('Download error:', error);
+                showToast('Error downloading file: ' + error.message, 'error');
+            }
         }
 
         function formatFileSize(bytes) {

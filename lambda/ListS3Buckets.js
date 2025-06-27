@@ -13,14 +13,14 @@ export const handler = async (event) => {
     // Filter buckets by naming pattern
     const allowedBuckets = data.Buckets
       .map(bucket => bucket.Name)
-      .filter(name => name.startsWith('spa-s3-') || name.includes('upload'));
+      .filter(name => name.startsWith('dev') || name.includes('upload'));
 
     console.log('Filtered buckets:', allowedBuckets);
 
     return {
       statusCode: 200,
       headers: {
-        'Access-Control-Allow-Origin': 'https://spa.chatwithjunle.com',
+        'Access-Control-Allow-Origin': 'https://dev.chatwithjunle.com',
         'Access-Control-Allow-Headers': 'Content-Type',
         'Access-Control-Allow-Methods': 'OPTIONS,GET'
       },
@@ -31,7 +31,7 @@ export const handler = async (event) => {
     return {
       statusCode: 500,
       headers: {
-        'Access-Control-Allow-Origin': 'https://spa.chatwithjunle.com',
+        'Access-Control-Allow-Origin': 'https://dev.chatwithjunle.com',
         'Access-Control-Allow-Headers': 'Content-Type'
       },
       body: JSON.stringify({ error: 'Failed to list buckets' })
