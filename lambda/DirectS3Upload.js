@@ -13,7 +13,7 @@ exports.handler = async (event) => {
         // Parse the request body
         const body = JSON.parse(event.body);
         const { fileName, contentType, bucket, path, fileSize } = body;
-                
+
         // Dynamic bucket validation
         const { ListBucketsCommand } = require("@aws-sdk/client-s3");
 
@@ -21,11 +21,11 @@ exports.handler = async (event) => {
         const listCommand = new ListBucketsCommand({});
         const bucketData = await s3.send(listCommand);
         const allowedBuckets = bucketData.Buckets
-        .map(bucket => bucket.Name)
-        .filter(name => name.startsWith('dev') || name.includes('upload'));
-        
+            .map(bucket => bucket.Name)
+            .filter(name => name.startsWith('dev') || name.includes('upload'));
+
         if (!allowedBuckets.includes(bucket)) {
-        return formatResponse(400, { error: 'Invalid bucket selection' });
+            return formatResponse(400, { error: 'Invalid bucket selection' });
         }
 
         // Validate file type
@@ -40,7 +40,7 @@ exports.handler = async (event) => {
 
         // Format the full path
         const fullPath = path ? (path.endsWith('/') ? path : path + '/') + fileName : fileName;
-        
+
         // Generate pre-signed URL for direct upload
         const signedUrlExpireSeconds = 60 * 5; // 5 minutes
 
