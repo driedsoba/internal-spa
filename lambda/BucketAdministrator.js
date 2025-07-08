@@ -6,7 +6,7 @@ export const handler = async (event) => {
     console.log('Event received:', JSON.stringify(event, null, 2));
     const { action, bucketName, policy, lifecycleConfig } = JSON.parse(event.body || '{}');
     console.log('Action:', action, 'Bucket:', bucketName, 'LifecycleConfig:', JSON.stringify(lifecycleConfig));
-    
+
     try {
         switch (action) {
             case 'createBucket':
@@ -30,7 +30,7 @@ export const handler = async (event) => {
 
 async function createBucket(bucketName) {
     // Create Bucket
-    const command = new CreateBucketCommand({ 
+    const command = new CreateBucketCommand({
         Bucket: bucketName,
         CreateBucketConfiguration: {
             LocationConstraint: 'ap-southeast-1'
@@ -42,12 +42,12 @@ async function createBucket(bucketName) {
     const corsCommand = new PutBucketCorsCommand({
         Bucket: bucketName,
         CORSConfiguration: {
-        CORSRules: [{
-            AllowedHeaders: ["*"],
-            AllowedMethods: ["PUT", "GET", "POST"],
-            AllowedOrigins: ["https://dev.chatwithjunle.com"],
-            ExposeHeaders: ["ETag", "x-amz-server-side-encryption", "x-amz-request-id", "x-amz-id-2"]
-        }]
+            CORSRules: [{
+                AllowedHeaders: ["*"],
+                AllowedMethods: ["PUT", "GET", "POST"],
+                AllowedOrigins: ["https://dev.chatwithjunle.com"],
+                ExposeHeaders: ["ETag", "x-amz-server-side-encryption", "x-amz-request-id", "x-amz-id-2"]
+            }]
         }
     });
     await s3Client.send(corsCommand);
@@ -84,7 +84,7 @@ async function getBucketPolicy(bucketName) {
 async function setBucketLifecycle(bucketName, lifecycleConfig) {
     console.log('Setting lifecycle for bucket:', bucketName);
     console.log('Config:', JSON.stringify(lifecycleConfig));
-    
+
     const command = new PutBucketLifecycleConfigurationCommand({
         Bucket: bucketName,
         LifecycleConfiguration: lifecycleConfig
