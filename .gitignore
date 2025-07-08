@@ -38,3 +38,6 @@ __pycache__/
 
 # Imports file
 imports.tf
+
+# Ignore zip files
+lambda-packages/
