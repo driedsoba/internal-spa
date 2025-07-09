@@ -2,7 +2,7 @@
 
 A Terraform-managed file management system with AWS S3 integration for internal use.
 
-## 🚀 Quick Start
+## Quick Start
 
 **New to this project?** → See [SETUP.md](SETUP.md) for complete deployment instructions.
 
