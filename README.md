@@ -7,35 +7,7 @@ A Terraform-managed file management system with AWS S3 integration for internal 
 This project provides a web application for uploading and managing files across multiple S3 buckets, featuring an admin portal for bucket operations and file management. The infrastructure is fully managed with Terraform using a modular architecture.
 
 ## Infrastructure Architecture
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Internet      │    │   Application   │    │   Backend       │
-│   Gateway       │────│   Load Balancer │────│   Services      │
-│                 │    │   (ALB)         │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                              │                        │
-                              │                        │
-                       ┌─────────────────┐    ┌─────────────────┐
-                       │   VPC           │    │   Lambda        │
-                       │   Private       │────│   Functions     │
-                       │   Subnets       │    │   (4 handlers)  │
-                       └─────────────────┘    └─────────────────┘
-                              │                        │
-                              │                        │
-                       ┌─────────────────┐    ┌─────────────────┐
-                       │   S3 VPC        │    │   API Gateway   │
-                       │   Endpoint      │────│   REST API      │
-                       │                 │    │                 │
-                       └─────────────────┘    └─────────────────┘
-                              │
-                              │
-                       ┌─────────────────┐
-                       │   S3 Buckets    │
-                       │   File Storage  │
-                       │                 │
-                       └─────────────────┘
-```
+![Architecture Diagram](S3-SPA-dev.png)
 
 ### Key Components
 
@@ -73,42 +45,31 @@ internal-spa/
 
 ## Terraform Modules
 
-This infrastructure uses a modular Terraform approach for better organization, reusability, and maintainability.
-
 ### Module Structure
 
 #### `modules/networking/`
-**Purpose**: Network infrastructure and security
 - VPC with DNS support and hostnames
 - Private subnets in multiple availability zones
 - Security groups for ALB and S3 access
 - S3 VPC interface endpoint for private connectivity
 
 #### `modules/compute/`
-**Purpose**: Serverless compute resources
 - Lambda function packaging and deployment
 - IAM roles with least-privilege policies
 - Four Lambda functions for different operations
 
 #### `modules/storage/`
-**Purpose**: Storage resources
 - S3 bucket for frontend hosting
 - Bucket policies and configurations
 
 #### `modules/api-gateway/`
-**Purpose**: API management
 - REST API Gateway with regional endpoints
 - CORS configuration for frontend domain
 
 #### `modules/load-balancer/`
-**Purpose**: Load balancing and routing
 - Application Load Balancer
 - Target groups with health checks
 - SSL/TLS termination
-
-## Migration from Monolithic to Modular
-
-This project was successfully migrated from a monolithic Terraform configuration to a modular structure while maintaining state continuity.
 
 ### Migration Process
 
@@ -116,17 +77,8 @@ This project was successfully migrated from a monolithic Terraform configuration
 2. **State Generation**: Generated initial configuration with `terraform plan -generate-config-out=generated.tf`
 3. **Modularization**: Split monolithic configuration into logical modules
 4. **State Migration**: Used `terraform state mv` to move resources from root to module paths
-5. **Validation**: Ensured no resource replacement or destruction during migration
 
-### Benefits of Modular Structure
-
-- **Separation of Concerns**: Each module handles a specific infrastructure layer
-- **Reusability**: Modules can be reused across environments or projects
-- **Maintainability**: Easier to understand, modify, and troubleshoot
-- **State Management**: Smaller, focused state files per module
-- **Team Collaboration**: Multiple team members can work on different modules
-
-### Key Migration Commands Used
+### Migration Commands Used
 
 ```bash
 # Move VPC resources to networking module
@@ -214,21 +166,6 @@ The Lambda functions require the following S3 permissions:
 - `AWS_REGION`: Target AWS region (default: ap-southeast-1)
 - `PROJECT_NAME`: Project identifier for resource naming
 - `DOMAIN_NAME`: Frontend domain name
-
-## Monitoring and Maintenance
-
-- **CloudWatch Logs**: All Lambda functions log to CloudWatch
-- **ALB Access Logs**: Load balancer access patterns
-- **Health Checks**: Target group health monitoring
-- **Cost Optimization**: S3 lifecycle rules for cost management
-
-## Security
-
-- **Private Networking**: All backend communication via private subnets
-- **VPC Endpoints**: S3 access without internet gateway
-- **Security Groups**: Restricted ingress/egress rules
-- **IAM Roles**: Least-privilege access for Lambda functions
-- **SSL/TLS**: Encrypted communication via ALB
 
 ## License
 
