@@ -6,8 +6,8 @@ A Terraform-managed file management system with AWS S3 integration for internal 
 
 This project provides a web application for uploading and managing files across multiple S3 buckets, featuring an admin portal for bucket operations and file management. The infrastructure is fully managed with Terraform using a modular architecture.
 
-## Infrastructure Architecture
-![Architecture Diagram](S3-SPA-dev.png)
+## Architecture Diagram
+![Architecture Diagram](S3-SPA.png)
 
 ### Key Components
 
