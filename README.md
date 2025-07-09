@@ -1,4 +1,4 @@
-# Internal SPA Infrastructure
+# S3 SPA Infrastructure
 
 A Terraform-managed file management system with AWS S3 integration for internal use.
 
