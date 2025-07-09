@@ -43,11 +43,11 @@ variable "availability_zone_1c" {
 variable "allowed_cidr_blocks" {
   description = "CIDR blocks allowed to access ALB"
   type        = list(string)
-  default     = ["118.189.14.110/32"]
+  default     = ["0.0.0.0/0"]
 }
 
 variable "external_sg_id" {
-  description = "External security group ID to reference"
+  description = "External security group ID to reference (optional)"
   type        = string
-  default     = "sg-0fdcb91c73d323b2c"
+  default     = null
 }

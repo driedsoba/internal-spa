@@ -36,8 +36,8 @@ module "networking" {
   subnet_1c_cidr       = "10.0.16.0/20"
   availability_zone_1a = "ap-southeast-1a"
   availability_zone_1c = "ap-southeast-1c"
-  allowed_cidr_blocks  = ["118.189.14.110/32"]
-  external_sg_id       = "sg-0fdcb91c73d323b2c"
+  allowed_cidr_blocks  = var.allowed_cidr_blocks
+  external_sg_id       = var.external_sg_id != "" ? var.external_sg_id : null
 }
 
 # Storage Module

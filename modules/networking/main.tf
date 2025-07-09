@@ -84,7 +84,8 @@ resource "aws_security_group" "s3_interface_sg" {
     from_port       = 80
     to_port         = 80
     protocol        = "tcp"
-    security_groups = [var.external_sg_id] # External SG reference
+    security_groups = var.external_sg_id != null ? [var.external_sg_id] : null
+    cidr_blocks     = var.external_sg_id == null ? var.allowed_cidr_blocks : null
   }
 
   egress {

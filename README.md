@@ -2,6 +2,12 @@
 
 A Terraform-managed file management system with AWS S3 integration for internal use.
 
+## 🚀 Quick Start
+
+**New to this project?** → See [SETUP.md](SETUP.md) for complete deployment instructions.
+
+**Existing users?** → Continue reading for architecture details and maintenance information.
+
 ## Overview
 
 This project provides a web application for uploading and managing files across multiple S3 buckets, featuring an admin portal for bucket operations and file management. The infrastructure is fully managed with Terraform using a modular architecture.
