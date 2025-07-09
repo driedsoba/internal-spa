@@ -37,7 +37,10 @@ __pycache__/
 .tox
 
 # Imports file
-imports.tf
+imports.tf.old
 
 # Ignore zip files
 lambda-packages/
+
+# Ignore generated Terraform files
+generated.tf.backup

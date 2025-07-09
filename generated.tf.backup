@@ -179,7 +179,6 @@ resource "aws_lb" "spa_alb" {
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
 
-  # Use ONLY subnets, removed conflicting subnet_mapping
   subnets = [aws_subnet.private_1a.id, aws_subnet.private_1c.id]
 
   enable_deletion_protection = false
@@ -187,7 +186,7 @@ resource "aws_lb" "spa_alb" {
   tags = {}
 }
 
-# Target Group - Fixed missing required arguments
+# Target Group
 resource "aws_lb_target_group" "lb_target_group" {
   name        = "s3-spa-target-public"
   port        = 443
@@ -207,9 +206,6 @@ resource "aws_lb_target_group" "lb_target_group" {
     unhealthy_threshold = 2
   }
 
-  # Removed problematic target_failover and target_health_state blocks
-  # that had null required values
-
   tags = {}
 }
 
@@ -219,7 +215,7 @@ resource "aws_s3_bucket" "spa_bucket" {
   tags   = {}
 }
 
-# Security Groups - Using references instead of hard-coded IDs
+# Security Groups
 resource "aws_security_group" "alb_sg" {
   name        = "spa-public-alb-sg"
   description = "Allow inbound traffic from my own laptop"
@@ -260,7 +256,7 @@ resource "aws_security_group" "s3_interface_sg" {
     from_port       = 80
     to_port         = 80
     protocol        = "tcp"
-    security_groups = ["sg-0fdcb91c73d323b2c"] # External SG reference
+    security_groups = ["sg-0fdcb91c73d323b2c"] 
   }
 
   egress {
@@ -289,7 +285,6 @@ resource "aws_subnet" "private_1c" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.16.0/20"
   availability_zone = "ap-southeast-1c"
-  # Fixed same issues as private_1a
 
   tags = {
     Name = "project-subnet-private1-ap-southeast-1c"
