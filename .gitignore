@@ -42,5 +42,6 @@ imports.tf.old
 # Ignore zip files
 lambda-packages/
 
-# Ignore generated Terraform files
+# Ignore migration directories
 generated.tf.backup
+imports.tf.backup
