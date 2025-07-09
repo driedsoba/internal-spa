@@ -173,7 +173,7 @@ resource "aws_lambda_function" "list_s3_buckets" {
 }
 
 # ALB
-resource "aws_lb" "public_alb" {
+resource "aws_lb" "spa_alb" {
   name               = "spa-internal-alb"
   internal           = false
   load_balancer_type = "application"
