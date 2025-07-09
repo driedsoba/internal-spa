@@ -1,0 +1,101 @@
+# Generate existing resources using terraform plan -generate-config-out=generated.tf, use cmd.exe not powershell to avoid issues with encoding
+
+# Host S3 Bucket
+import {
+  to = aws_s3_bucket.spa_bucket
+  id = "spa.chatwithjunle.com"
+}
+
+# Project VPC
+import {
+  to = aws_vpc.main
+  id = "vpc-030f9ed3430c6318f"
+}
+
+# Subnets
+import {
+  to = aws_subnet.private_1a
+  id = "subnet-06298135755e59ad4"
+}
+
+import {
+  to = aws_subnet.private_1c
+  id = "subnet-0375edb143dfc889d"
+}
+
+# Security Groups
+import {
+  to = aws_security_group.alb_sg
+  id = "sg-0f78b3e98165555b8"
+}
+
+import {
+  to = aws_security_group.s3_interface_sg
+  id = "sg-0bd50b8e8214b2ee1"
+}
+
+# Lambda execution roles
+import {
+  to = aws_iam_role.lambda_directs3upload_role
+  id = "DirectS3Upload-role-zviwdm3v"
+}
+
+import {
+  to = aws_iam_role.lambda_adminfilemanager_role
+  id = "AdminFileManager-role-8e5nfd3s"
+}
+
+import {
+  to = aws_iam_role.lambda_lists3buckets_role
+  id = "ListS3Buckets-role-upaksby2"
+}
+
+import {
+  to = aws_iam_role.lambda_bucketadministrator_role
+  id = "BucketAdministrator-role-pnbrbddo"
+}
+
+# Public ALB
+import {
+  to = aws_lb.spa_alb
+  id = "arn:aws:elasticloadbalancing:ap-southeast-1:412973596844:loadbalancer/app/spa-internal-alb/7809fb05dd99ed40"
+}
+
+# Lambda Functions
+import {
+  to = aws_lambda_function.direct_s3_upload
+  id = "DirectS3Upload"
+}
+
+import {
+  to = aws_lambda_function.admin_file_manager
+  id = "AdminFileManager"
+}
+
+import {
+  to = aws_lambda_function.bucket_administrator
+  id = "BucketAdministrator"
+}
+
+import {
+  to = aws_lambda_function.list_s3_buckets
+  id = "ListS3Buckets"
+}
+
+# API Gateway
+import {
+  to = aws_api_gateway_rest_api.spa_api
+  id = "1uulda0imb"
+}
+
+# VPC Endpoint (S3 Interface)
+import {
+  to = aws_vpc_endpoint.s3_interface
+  id = "vpce-00b2bc7277d75dcff"
+}
+
+# ALB Target Group
+import {
+  to = aws_lb_target_group.lb_target_group
+  id = "arn:aws:elasticloadbalancing:ap-southeast-1:412973596844:targetgroup/s3-spa-target-public/d4ba5545900f9f12"
+}
