@@ -66,3 +66,18 @@ output "direct_s3_upload_invoke_arn" {
   description = "Invoke ARN of the DirectS3Upload Lambda function"
   value       = aws_lambda_function.direct_s3_upload.invoke_arn
 }
+
+output "admin_file_manager_invoke_arn" {
+  description = "Invoke ARN of the AdminFileManager Lambda function"
+  value       = aws_lambda_function.admin_file_manager.invoke_arn
+}
+
+output "list_s3_buckets_invoke_arn" {
+  description = "Invoke ARN of the ListS3Buckets Lambda function"
+  value       = aws_lambda_function.list_s3_buckets.invoke_arn
+}
+
+output "bucket_administrator_invoke_arn" {
+  description = "Invoke ARN of the BucketAdministrator Lambda function"
+  value       = aws_lambda_function.bucket_administrator.invoke_arn
+}

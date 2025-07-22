@@ -68,10 +68,13 @@ module "compute" {
 module "api_gateway" {
   source = "./modules/api-gateway"
 
-  project_name                       = var.project_name
-  api_description                    = "API for SPA file upload system"
-  endpoint_type                      = "REGIONAL"
-  direct_s3_upload_lambda_invoke_arn = module.compute.direct_s3_upload_invoke_arn
+  project_name                           = var.project_name
+  api_description                        = "API for SPA file upload system"
+  endpoint_type                          = "REGIONAL"
+  direct_s3_upload_lambda_invoke_arn     = module.compute.direct_s3_upload_invoke_arn
+  admin_file_manager_lambda_invoke_arn   = module.compute.admin_file_manager_invoke_arn
+  list_s3_buckets_lambda_invoke_arn      = module.compute.list_s3_buckets_invoke_arn
+  bucket_administrator_lambda_invoke_arn = module.compute.bucket_administrator_invoke_arn
 }
 
 # Load Balancer Module
@@ -94,4 +97,5 @@ module "load_balancer" {
   health_check_path                = "/"
   health_check_timeout             = 10
   health_check_unhealthy_threshold = 2
+  ssl_certificate_arn              = var.ssl_certificate_arn
 }

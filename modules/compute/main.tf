@@ -209,3 +209,205 @@ resource "aws_cloudwatch_log_group" "lambda_log_groups" {
     Project   = var.project_name
   }
 }
+
+# Custom IAM Policies
+resource "aws_iam_policy" "lambda_s3_upload_policy" {
+  name        = "LambdaS3UploadPolicy"
+  
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:GetObject",
+          "s3:ListAllMyBuckets"
+        ]
+        Resource = [
+          "arn:aws:s3:::spa-s3-*/*",
+          "arn:aws:s3:::*"
+        ]
+      }
+    ]
+  })
+
+  tags = {
+    Name      = "${var.project_name}-lambda-s3-upload-policy"
+    ManagedBy = "terraform"
+    Project   = var.project_name
+  }
+}
+
+resource "aws_iam_policy" "lambda_basic_execution_direct_s3_upload" {
+  name = "AWSLambdaBasicExecutionRole-1e43d33c-f442-40c0-859d-1c97f3db3738"
+  path = "/service-role/"
+  
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "logs:CreateLogGroup"
+        Resource = "arn:aws:logs:ap-southeast-1:412973596844:*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = [
+          "arn:aws:logs:ap-southeast-1:412973596844:log-group:/aws/lambda/DirectS3Upload:*"
+        ]
+      }
+    ]
+  })
+
+  tags = {
+    Name      = "${var.project_name}-direct-s3-upload-basic-execution"
+    ManagedBy = "terraform"
+    Project   = var.project_name
+  }
+}
+
+resource "aws_iam_policy" "lambda_basic_execution_admin_file_manager" {
+  name = "AWSLambdaBasicExecutionRole-1f609f5a-011e-4312-bbc2-61bf34989781"
+  path = "/service-role/"
+  
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "logs:CreateLogGroup"
+        Resource = "arn:aws:logs:ap-southeast-1:412973596844:*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = [
+          "arn:aws:logs:ap-southeast-1:412973596844:log-group:/aws/lambda/AdminFileManager:*"
+        ]
+      }
+    ]
+  })
+
+  tags = {
+    Name      = "${var.project_name}-admin-file-manager-basic-execution"
+    ManagedBy = "terraform"
+    Project   = var.project_name
+  }
+}
+
+resource "aws_iam_policy" "lambda_basic_execution_list_s3_buckets" {
+  name = "AWSLambdaBasicExecutionRole-cc72c359-84c8-4143-b179-2340fb4902a5"
+  path = "/service-role/"
+  
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "logs:CreateLogGroup"
+        Resource = "arn:aws:logs:ap-southeast-1:412973596844:*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = [
+          "arn:aws:logs:ap-southeast-1:412973596844:log-group:/aws/lambda/ListS3Buckets:*"
+        ]
+      }
+    ]
+  })
+
+  tags = {
+    Name      = "${var.project_name}-list-s3-buckets-basic-execution"
+    ManagedBy = "terraform"
+    Project   = var.project_name
+  }
+}
+
+resource "aws_iam_policy" "lambda_basic_execution_bucket_administrator" {
+  name = "AWSLambdaBasicExecutionRole-e5683103-2be0-4203-a14d-c8a962a91918"
+  path = "/service-role/"
+  
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "logs:CreateLogGroup"
+        Resource = "arn:aws:logs:ap-southeast-1:412973596844:*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = [
+          "arn:aws:logs:ap-southeast-1:412973596844:log-group:/aws/lambda/BucketAdministrator:*"
+        ]
+      }
+    ]
+  })
+
+  tags = {
+    Name      = "${var.project_name}-bucket-administrator-basic-execution"
+    ManagedBy = "terraform"
+    Project   = var.project_name
+  }
+}
+
+# IAM Policy Attachments for Lambda Roles
+# DirectS3Upload Role Policy Attachments
+resource "aws_iam_role_policy_attachment" "direct_s3_upload_basic_execution" {
+  role       = aws_iam_role.lambda_directs3upload_role.name
+  policy_arn = aws_iam_policy.lambda_basic_execution_direct_s3_upload.arn
+}
+
+resource "aws_iam_role_policy_attachment" "direct_s3_upload_s3_policy" {
+  role       = aws_iam_role.lambda_directs3upload_role.name
+  policy_arn = aws_iam_policy.lambda_s3_upload_policy.arn
+}
+
+# AdminFileManager Role Policy Attachments
+resource "aws_iam_role_policy_attachment" "admin_file_manager_basic_execution" {
+  role       = aws_iam_role.lambda_adminfilemanager_role.name
+  policy_arn = aws_iam_policy.lambda_basic_execution_admin_file_manager.arn
+}
+
+resource "aws_iam_role_policy_attachment" "admin_file_manager_s3_full_access" {
+  role       = aws_iam_role.lambda_adminfilemanager_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+}
+
+# ListS3Buckets Role Policy Attachments
+resource "aws_iam_role_policy_attachment" "list_s3_buckets_basic_execution" {
+  role       = aws_iam_role.lambda_lists3buckets_role.name
+  policy_arn = aws_iam_policy.lambda_basic_execution_list_s3_buckets.arn
+}
+
+resource "aws_iam_role_policy_attachment" "list_s3_buckets_readonly_access" {
+  role       = aws_iam_role.lambda_lists3buckets_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+}
+
+# BucketAdministrator Role Policy Attachments
+resource "aws_iam_role_policy_attachment" "bucket_administrator_basic_execution" {
+  role       = aws_iam_role.lambda_bucketadministrator_role.name
+  policy_arn = aws_iam_policy.lambda_basic_execution_bucket_administrator.arn
+}
+
+resource "aws_iam_role_policy_attachment" "bucket_administrator_s3_full_access" {
+  role       = aws_iam_role.lambda_bucketadministrator_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+}

@@ -41,3 +41,22 @@ resource "aws_lb_target_group" "lb_target_group" {
     Project   = var.project_name
   }
 }
+
+# HTTPS Listener
+resource "aws_lb_listener" "spa_https_listener" {
+  load_balancer_arn = aws_lb.spa_alb.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-Res-2021-06"
+  certificate_arn   = var.ssl_certificate_arn
+
+  default_action {
+    type = "fixed-response"
+
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "Default - No Action matched."
+      status_code  = "404"
+    }
+  }
+}

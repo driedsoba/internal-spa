@@ -90,3 +90,8 @@ variable "health_check_unhealthy_threshold" {
   type        = number
   default     = 2
 }
+
+variable "ssl_certificate_arn" {
+  description = "ARN of the SSL certificate for HTTPS listener"
+  type        = string
+}

@@ -45,3 +45,9 @@ variable "terraform_cloud_workspace" {
   type        = string
   default     = ""
 }
+
+variable "ssl_certificate_arn" {
+  description = "ARN of the SSL certificate for HTTPS"
+  type        = string
+  default     = "arn:aws:acm:ap-southeast-1:412973596844:certificate/46d4048e-15d3-4135-b377-e11954ab2535"
+}

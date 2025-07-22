@@ -26,3 +26,18 @@ variable "stage_name" {
   type        = string
   default     = "prod"
 }
+
+variable "admin_file_manager_lambda_invoke_arn" {
+  description = "Invoke ARN for the AdminFileManager Lambda function"
+  type        = string
+}
+
+variable "list_s3_buckets_lambda_invoke_arn" {
+  description = "Invoke ARN for the ListS3Buckets Lambda function"
+  type        = string
+}
+
+variable "bucket_administrator_lambda_invoke_arn" {
+  description = "Invoke ARN for the BucketAdministrator Lambda function"
+  type        = string
+}
