@@ -212,8 +212,8 @@ resource "aws_cloudwatch_log_group" "lambda_log_groups" {
 
 # Custom IAM Policies
 resource "aws_iam_policy" "lambda_s3_upload_policy" {
-  name        = "LambdaS3UploadPolicy"
-  
+  name = "LambdaS3UploadPolicy"
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -242,13 +242,13 @@ resource "aws_iam_policy" "lambda_s3_upload_policy" {
 resource "aws_iam_policy" "lambda_basic_execution_direct_s3_upload" {
   name = "AWSLambdaBasicExecutionRole-1e43d33c-f442-40c0-859d-1c97f3db3738"
   path = "/service-role/"
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Action = "logs:CreateLogGroup"
+        Effect   = "Allow"
+        Action   = "logs:CreateLogGroup"
         Resource = "arn:aws:logs:ap-southeast-1:412973596844:*"
       },
       {
@@ -274,13 +274,13 @@ resource "aws_iam_policy" "lambda_basic_execution_direct_s3_upload" {
 resource "aws_iam_policy" "lambda_basic_execution_admin_file_manager" {
   name = "AWSLambdaBasicExecutionRole-1f609f5a-011e-4312-bbc2-61bf34989781"
   path = "/service-role/"
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Action = "logs:CreateLogGroup"
+        Effect   = "Allow"
+        Action   = "logs:CreateLogGroup"
         Resource = "arn:aws:logs:ap-southeast-1:412973596844:*"
       },
       {
@@ -306,13 +306,13 @@ resource "aws_iam_policy" "lambda_basic_execution_admin_file_manager" {
 resource "aws_iam_policy" "lambda_basic_execution_list_s3_buckets" {
   name = "AWSLambdaBasicExecutionRole-cc72c359-84c8-4143-b179-2340fb4902a5"
   path = "/service-role/"
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Action = "logs:CreateLogGroup"
+        Effect   = "Allow"
+        Action   = "logs:CreateLogGroup"
         Resource = "arn:aws:logs:ap-southeast-1:412973596844:*"
       },
       {
@@ -338,13 +338,13 @@ resource "aws_iam_policy" "lambda_basic_execution_list_s3_buckets" {
 resource "aws_iam_policy" "lambda_basic_execution_bucket_administrator" {
   name = "AWSLambdaBasicExecutionRole-e5683103-2be0-4203-a14d-c8a962a91918"
   path = "/service-role/"
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Action = "logs:CreateLogGroup"
+        Effect   = "Allow"
+        Action   = "logs:CreateLogGroup"
         Resource = "arn:aws:logs:ap-southeast-1:412973596844:*"
       },
       {

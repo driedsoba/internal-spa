@@ -41,3 +41,23 @@ variable "bucket_administrator_lambda_invoke_arn" {
   description = "Invoke ARN for the BucketAdministrator Lambda function"
   type        = string
 }
+
+variable "direct_s3_upload_lambda_function_name" {
+  description = "Function name for the DirectS3Upload Lambda function"
+  type        = string
+}
+
+variable "admin_file_manager_lambda_function_name" {
+  description = "Function name for the AdminFileManager Lambda function"
+  type        = string
+}
+
+variable "list_s3_buckets_lambda_function_name" {
+  description = "Function name for the ListS3Buckets Lambda function"
+  type        = string
+}
+
+variable "bucket_administrator_lambda_function_name" {
+  description = "Function name for the BucketAdministrator Lambda function"
+  type        = string
+}
