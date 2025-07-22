@@ -60,3 +60,9 @@ output "list_s3_buckets_role_arn" {
   description = "ARN of the ListS3Buckets IAM role"
   value       = aws_iam_role.lambda_lists3buckets_role.arn
 }
+
+# Lambda Function Invoke ARNs (for API Gateway)
+output "direct_s3_upload_invoke_arn" {
+  description = "Invoke ARN of the DirectS3Upload Lambda function"
+  value       = aws_lambda_function.direct_s3_upload.invoke_arn
+}
