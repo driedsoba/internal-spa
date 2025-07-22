@@ -191,3 +191,21 @@ resource "aws_lambda_function" "list_s3_buckets" {
     Project   = var.project_name
   }
 }
+
+# CloudWatch Log Groups for Lambda Functions
+resource "aws_cloudwatch_log_group" "lambda_log_groups" {
+  for_each = {
+    AdminFileManager    = "/aws/lambda/AdminFileManager"
+    BucketAdministrator = "/aws/lambda/BucketAdministrator"
+    DirectS3Upload      = "/aws/lambda/DirectS3Upload"
+    ListS3Buckets       = "/aws/lambda/ListS3Buckets"
+  }
+
+  name              = each.value
+  retention_in_days = 1
+  tags = {
+    Name      = "${var.project_name}-${each.key}-logs"
+    ManagedBy = "terraform"
+    Project   = var.project_name
+  }
+}

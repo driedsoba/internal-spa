@@ -27,26 +27,26 @@ This project provides a web application for uploading and managing files across 
 
 ```
 internal-spa/
-├── frontend/                    # Frontend static files
+├── frontend/                   # Frontend static files
 │   ├── index.html              # File upload interface
 │   └── admin.html              # Admin portal
 ├── lambda/                     # AWS Lambda functions source
 │   ├── DirectS3Upload.js       # Generate pre-signed upload URLs
 │   ├── AdminFileManager.mjs    # File operations (list/delete/move)
 │   ├── BucketAdministrator.mjs # Bucket management
-│   └── ListS3Buckets.mjs      # List available buckets
+│   └── ListS3Buckets.mjs       # List available buckets
 ├── modules/                    # Terraform modules
 │   ├── networking/             # VPC, subnets, security groups
-│   ├── compute/               # Lambda functions and IAM roles
-│   ├── storage/               # S3 buckets
-│   ├── api-gateway/           # API Gateway configuration
-│   └── load-balancer/         # ALB and target groups
-├── main.tf                    # Root Terraform configuration
-├── variables.tf               # Input variables
-├── outputs.tf                 # Output values
-├── terraform.tfvars          # Variable values
-├── generated.tf.backup       # Legacy monolithic config (backup)
-└── imports.tf.old           # Original import blocks (backup)
+│   ├── compute/                # Lambda functions and IAM roles
+│   ├── storage/                # S3 buckets
+│   ├── api-gateway/            # API Gateway configuration
+│   └── load-balancer/          # ALB and target groups
+├── main.tf                     # Root Terraform configuration
+├── variables.tf                # Input variables
+├── outputs.tf                  # Output values
+├── terraform.tfvars            # Variable values
+├── generated.tf.backup         # Legacy monolithic config (backup)
+└── imports.tf.old              # Original import blocks (backup)
 ```
 
 ## Terraform Modules

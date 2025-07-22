@@ -99,10 +99,10 @@ module "load_balancer" {
 │ (foundation)│    │(independent)│    │(independent)│
 └─────────────┘    └─────────────┘    └─────────────┘
        │                                      
-       │            ┌─────────────┐           
-       │            │ api_gateway │           
-       │            │(independent)│           
-       │            └─────────────┘           
+       │           ┌─────────────┐           
+       │           │ api_gateway │           
+       │           │(independent)│           
+       │           └─────────────┘           
        │                                      
        ▼                                      
 ┌─────────────┐                              

@@ -25,6 +25,7 @@ provider "aws" {
   }
 }
 
+
 # Networking Module
 module "networking" {
   source = "./modules/networking"
@@ -44,8 +45,9 @@ module "networking" {
 module "storage" {
   source = "./modules/storage"
 
-  project_name = var.project_name
-  bucket_name  = var.domain_name
+  project_name    = var.project_name
+  bucket_name     = var.domain_name
+  vpc_endpoint_id = module.networking.s3_vpc_endpoint_id
 }
 
 # Compute Module (Lambda Functions)
