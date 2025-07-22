@@ -23,7 +23,6 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "spa_bucket_encryp
   }
 }
 
-
 # S3 Bucket Public Access Block
 resource "aws_s3_bucket_public_access_block" "spa_bucket_public_access_block" {
   bucket = aws_s3_bucket.spa_bucket.id
