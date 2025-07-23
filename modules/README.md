@@ -92,25 +92,7 @@ module "load_balancer" {
 ```
 
 ## Module Dependencies
-
-```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│  networking │    │   storage   │    │   compute   │
-│ (foundation)│    │(independent)│    │(independent)│
-└─────────────┘    └─────────────┘    └─────────────┘
-       │                                      
-       │           ┌─────────────┐           
-       │           │ api_gateway │           
-       │           │(independent)│           
-       │           └─────────────┘           
-       │                                      
-       ▼                                      
-┌─────────────┐                              
-│load_balancer│                              
-│ (depends on │                              
-│ networking) │                              
-└─────────────┘                              
-```
+![Module Dependencies](graphviz.png)
 
 **Deployment Order**: 
 1. `networking`, `storage`, `compute`, `api_gateway` can be deployed in parallel
