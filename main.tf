@@ -1,4 +1,5 @@
 terraform {
+  required_version = ">= 1.12.0"
   cloud {
     organization = "spa-s3fileupload"
     workspaces {

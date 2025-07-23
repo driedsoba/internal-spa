@@ -4,12 +4,6 @@ variable "aws_region" {
   default     = "ap-southeast-1"
 }
 
-variable "environment" {
-  description = "Environment name (dev, staging, prod)"
-  type        = string
-  default     = "dev"
-}
-
 variable "domain_name" {
   description = "Domain name for the application"
   type        = string
@@ -32,18 +26,6 @@ variable "external_sg_id" {
   description = "External security group ID to reference (optional)"
   type        = string
   default     = "" # Empty means create new security group
-}
-
-variable "terraform_cloud_organization" {
-  description = "Terraform Cloud organization name"
-  type        = string
-  default     = ""
-}
-
-variable "terraform_cloud_workspace" {
-  description = "Terraform Cloud workspace name"
-  type        = string
-  default     = ""
 }
 
 variable "ssl_certificate_arn" {

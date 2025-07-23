@@ -47,7 +47,7 @@ resource "aws_s3_bucket_policy" "spa_bucket_policy" {
         Action    = "s3:GetObject"
         Resource = [
           "${aws_s3_bucket.spa_bucket.arn}/*",
-          "${aws_s3_bucket.spa_bucket.arn}"
+          aws_s3_bucket.spa_bucket.arn
         ]
         Condition = {
           StringEquals = {
