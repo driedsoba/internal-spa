@@ -41,6 +41,9 @@ internal-spa/
 │   ├── storage/                # S3 buckets
 │   ├── api-gateway/            # API Gateway configuration
 │   └── load-balancer/          # ALB and target groups
+├── sentinel/                   # Sentinel governance policies
+│   ├── sentinel.hcl            # Policy configuration
+│   └── README.md               # Policy documentation
 ├── main.tf                     # Root Terraform configuration
 ├── variables.tf                # Input variables
 ├── outputs.tf                  # Output values
@@ -117,6 +120,43 @@ terraform state mv aws_s3_bucket.spa_bucket module.storage.aws_s3_bucket.spa_buc
 ### Admin Endpoints
 - `POST /admin/files` - File operations (list/delete/move)
 - `POST /admin/buckets` - Bucket management operations
+
+## Security & Governance
+
+This project implements **Sentinel policies** for automated compliance and security validation.
+
+### CIS Policies
+
+
+1. **EC2 Security Group Traffic Restriction**
+   - Prevents unrestricted ingress traffic (0.0.0.0/0)
+   - Ensures least-privilege network access
+
+2. **EBS Encryption Enabled**
+   - Requires encryption for EBS volumes
+   - Protects data at rest
+
+3. **S3 Block Public Access (Account Level)**
+   - Prevents accidental public S3 exposure
+   - Account-wide protection
+
+4. **S3 Block Public Access (Bucket Level)**
+   - Bucket-specific public access blocking
+   - ✅ **Already compliant** with your current configuration
+
+5. **IAM No Admin Privileges**
+   - Prevents overly permissive IAM policies
+   - Enforces least-privilege access
+
+### Policy Configuration
+
+```hcl
+# All policies set to "advisory" enforcement level
+# Provides warnings without blocking deployments
+enforcement_level = "advisory"
+```
+
+For detailed policy information, see [`sentinel/README.md`](sentinel/README.md).
 
 ## Deployment
 
