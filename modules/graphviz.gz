@@ -1,0 +1,77 @@
+digraph G {
+  rankdir = LR;
+  node [shape = rect, fontname = "sans‑serif"];
+
+  /* ──────────────── API GATEWAY ──────────────── */
+  subgraph cluster_api {
+    label = "API Gateway";
+    style = rounded;
+
+    spa_api          [label = "REST API"];
+    admin_r          [label = "/admin"];
+    admin_buckets_r  [label = "/admin/buckets"];
+    buckets_r        [label = "/buckets"];
+    upload_r         [label = "/upload"];
+
+    /* hierarchy (no arrow‑heads to show containment) */
+    spa_api -> {admin_r buckets_r upload_r} [arrowhead=none];
+    admin_r -> admin_buckets_r              [arrowhead=none];
+  }
+
+  /* ──────────────── LAMBDAS / COMPUTE ──────────────── */
+  subgraph cluster_compute {
+    label = "Lambdas";
+    style = rounded;
+
+    lambda_admin        [label = "admin_file_manager"];
+    lambda_bucket_admin [label = "bucket_administrator"];
+    lambda_list         [label = "list_s3_buckets"];
+    lambda_upload       [label = "direct_s3_upload"];
+  }
+
+  /* ──────────────── STORAGE ──────────────── */
+  subgraph cluster_storage {
+    label = "S3 Storage";
+    style = rounded;
+
+    spa_bucket [label = "spa_bucket"];
+  }
+
+  /* ──────────────── NETWORKING ──────────────── */
+  subgraph cluster_net {
+    label = "Networking";
+    style = rounded;
+
+    vpc       [label = "VPC"];
+    subnet_a  [label = "private subnet 1a"];
+    subnet_c  [label = "private subnet 1c"];
+    s3_ep     [label = "S3 VPC endpoint"];
+
+    vpc -> {subnet_a subnet_c s3_ep} [dir=none];
+  }
+
+  /* ──────────────── LOAD BALANCER (static SPA) ──────────────── */
+  subgraph cluster_lb {
+    label = "ALB";
+    style = rounded;
+
+    alb      [label = "spa_alb"];
+    listener [label = "HTTPS listener"];
+    tg       [label = "target group"];
+
+    alb -> listener -> tg;
+    tg  -> {subnet_a subnet_c} [dir=none];
+  }
+
+  /* ──────────────── CORE FLOWS ──────────────── */
+  admin_r          -> lambda_admin        [label = "POST"];
+  admin_buckets_r  -> lambda_bucket_admin [label = "POST"];
+  buckets_r        -> lambda_list         [label = "GET"];
+  upload_r         -> lambda_upload       [label = "POST"];
+
+  /* Lambdas touching S3 */
+  {lambda_upload lambda_bucket_admin lambda_admin lambda_list} -> spa_bucket;
+
+  /* S3 served privately via endpoint */
+  spa_bucket -> s3_ep [style=dashed, label="private access"];
+}
