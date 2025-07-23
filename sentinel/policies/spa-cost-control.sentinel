@@ -1,0 +1,24 @@
+import "tfplan/v2" as tfplan
+import "decimal"
+
+# Cost control limits for internal SPA
+max_monthly_cost = 30.0  # $30 per month
+warning_threshold = 20.0 # Warning at $20
+
+# Get cost estimate from plan
+cost_estimate = tfplan.cost_estimate
+
+# Print warning when approaching limit
+cost_warning = rule when cost_estimate.monthly_cost is not null and cost_estimate.monthly_cost > warning_threshold {
+    print("Warning: SPA monthly cost ($" + 
+          decimal.to_string(cost_estimate.monthly_cost) + 
+          ") is approaching limit of $" + 
+          decimal.to_string(max_monthly_cost))
+    true
+}
+
+# Main cost control rule
+main = rule when cost_estimate.monthly_cost is not null {
+    cost_warning and
+    cost_estimate.monthly_cost < max_monthly_cost
+}
