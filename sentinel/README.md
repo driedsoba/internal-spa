@@ -1,20 +1,18 @@
 # Sentinel Policies
 
-CIS (Center for Internet Security) AWS Terraform policies for governance and compliance.
+Security policies for AWS infrastructure governance.
 
 ## Policies
 
-- **ec2-security-group-ipv4-ingress-traffic-restriction**: Prevents unrestricted ingress traffic
-- **ec2-ebs-encryption-enabled**: Ensures EBS volumes are encrypted  
-- **s3-block-public-access-account-level**: Blocks S3 public access at account level
-- **s3-block-public-access-bucket-level**: Blocks S3 public access at bucket level 
-- **iam-no-admin-privileges-allowed-by-policies**: Prevents overly permissive IAM policies
+- **ec2-security-group-restriction**: Prevents unrestricted ingress traffic
+- **s3-block-public-access**: Ensures S3 bucket public access is blocked
+- **iam-no-admin-privileges**: Prevents overly permissive IAM policies
 
 All policies are set to `advisory` enforcement level.
 
-## Setup
+## Setup in Terraform Cloud
 
-Configure in Terraform Cloud:
 1. Go to workspace Settings → Policy Sets
-2. Create new policy set with source: Version Control System  
-3. Directory: `sentinel/`
+2. Create new policy set: **Upload files**
+3. Upload all files from `sentinel/` directory
+4. Apply to workspace: `internal-spa`
