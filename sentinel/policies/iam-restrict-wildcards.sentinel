@@ -1,0 +1,103 @@
+import "tfplan/v2" as tfplan
+import "strings"
+
+# Find IAM policies and roles
+iam_policies = filter tfplan.resource_changes as _, rc {
+    rc.type is "aws_iam_policy" and
+    rc.mode is "managed" and
+    rc.change.after is not null
+}
+
+iam_role_policies = filter tfplan.resource_changes as _, rc {
+    rc.type is "aws_iam_role_policy" and
+    rc.mode is "managed" and
+    rc.change.after is not null
+}
+
+iam_roles = filter tfplan.resource_changes as _, rc {
+    rc.type is "aws_iam_role" and
+    rc.mode is "managed" and
+    rc.change.after is not null
+}
+
+# Initialize violations counter
+violation_count = 0
+
+# Dangerous actions that should be avoided
+dangerous_actions = ["*", "s3:*", "iam:*", "ec2:*", "lambda:*"]
+
+# Check IAM policies for dangerous permissions
+for iam_policies as address, rc {
+    policy_doc = rc.change.after.policy else ""
+    
+    # Only check if policy document exists and is not empty
+    if policy_doc is not null and policy_doc is not "" {
+        policy_lower = strings.to_lower(policy_doc)
+        
+        # Check for dangerous actions
+        for dangerous_actions as action {
+            action_lower = strings.to_lower(action)
+            if action_lower in policy_lower {
+                print(address, "- dangerous action:", action)
+                violation_count = violation_count + 1
+            }
+        }
+        
+        # Check for wildcard resources
+        if "\"*\"" in policy_doc {
+            print(address, "- wildcard resources (*)")
+            violation_count = violation_count + 1
+        }
+    }
+}
+
+# Check inline IAM role policies
+for iam_role_policies as address, rc {
+    policy_doc = rc.change.after.policy else ""
+    
+    # Only check if policy document exists and is not empty
+    if policy_doc is not null and policy_doc is not "" {
+        policy_lower = strings.to_lower(policy_doc)
+        
+        # Check for dangerous actions
+        for dangerous_actions as action {
+            action_lower = strings.to_lower(action)
+            if action_lower in policy_lower {
+                print(address, "- dangerous action:", action)
+                violation_count = violation_count + 1
+            }
+        }
+        
+        # Check for wildcard resources
+        if "\"*\"" in policy_doc {
+            print(address, "- wildcard resources (*)")
+            violation_count = violation_count + 1
+        }
+    }
+}
+
+# Check IAM roles for overly permissive assume role policies
+for iam_roles as address, rc {
+    assume_role_policy = rc.change.after.assume_role_policy else ""
+    
+    # Check if assume role policy exists and is not empty
+    if assume_role_policy is not null and assume_role_policy is not "" {
+        # Check if role can be assumed by any AWS account
+        if "\"*\"" in assume_role_policy and "Principal" in assume_role_policy {
+            print("❌", address, "- overly permissive assume role policy")
+            violation_count = violation_count + 1
+        }
+    }
+}
+
+# Print summary
+if violation_count > 0 {
+    print("IAM violations found:", violation_count, "- Use least-privilege permissions")
+} else {
+    print("IAM policy check passed")
+}
+
+# Main rule: no violations
+main = rule {
+    violation_count is 0
+}
