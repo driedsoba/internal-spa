@@ -84,7 +84,7 @@ for iam_roles as address, rc {
     if assume_role_policy is not null and assume_role_policy is not "" {
         # Check if role can be assumed by any AWS account
         if "\"*\"" in assume_role_policy and "Principal" in assume_role_policy {
-            print("❌", address, "- overly permissive assume role policy")
+            print(address, "- overly permissive assume role policy")
             violation_count = violation_count + 1
         }
     }

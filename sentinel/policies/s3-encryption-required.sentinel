@@ -1,0 +1,75 @@
+import "tfplan/v2" as tfplan
+
+# Find S3 buckets
+s3_buckets = filter tfplan.resource_changes as _, rc {
+    rc.type is "aws_s3_bucket" and
+    rc.mode is "managed" and
+    rc.change.after is not null
+}
+
+# Find S3 encryption configurations
+s3_encryption = filter tfplan.resource_changes as _, rc {
+    rc.type is "aws_s3_bucket_server_side_encryption_configuration" and
+    rc.mode is "managed" and
+    rc.change.after is not null
+}
+
+# Find EBS volumes
+ebs_volumes = filter tfplan.resource_changes as _, rc {
+    rc.type is "aws_ebs_volume" and
+    rc.mode is "managed" and
+    rc.change.after is not null
+}
+
+violation_count = 0
+
+# Collect encrypted bucket names
+encrypted_buckets = []
+for s3_encryption as address, rc {
+    bucket_ref = rc.change.after.bucket
+    if bucket_ref is not null {
+        encrypted_buckets = encrypted_buckets + [bucket_ref]
+    }
+}
+
+# Check S3 bucket encryption
+for s3_buckets as address, rc {
+    bucket_name = rc.change.after.bucket
+    
+    if bucket_name is not null {
+        bucket_has_encryption = false
+        
+        for encrypted_buckets as encrypted_bucket {
+            if encrypted_bucket is bucket_name {
+                bucket_has_encryption = true
+            }
+        }
+        
+        if bucket_has_encryption is false {
+            print(address, "- S3 bucket missing encryption")
+            violation_count = violation_count + 1
+        }
+    }
+}
+
+# Check EBS volume encryption
+for ebs_volumes as address, rc {
+    encrypted = rc.change.after.encrypted
+    
+    if encrypted is not true {
+        print(address, "- EBS volume not encrypted")
+        violation_count = violation_count + 1
+    }
+}
+
+# Print summary
+if violation_count > 0 {
+    print("Encryption violations found:", violation_count, "- Enable encryption at rest")
+} else {
+    print("All resources properly encrypted")
+}
+
+# Main rule
+main = rule {
+    violation_count is 0
+}
