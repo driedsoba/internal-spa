@@ -43,13 +43,18 @@ internal-spa/
 │   └── load-balancer/          # ALB and target groups
 ├── sentinel/                   # Sentinel governance policies
 │   ├── sentinel.hcl            # Policy configuration
+│   ├── policies/               # Policy implementation files
+│   │   ├── iam-restrict-wildcards.sentinel
+│   │   └── s3-encryption-required.sentinel
 │   └── README.md               # Policy documentation
+├── lambda-packages/            # Generated Lambda deployment packages
 ├── main.tf                     # Root Terraform configuration
 ├── variables.tf                # Input variables
 ├── outputs.tf                  # Output values
 ├── terraform.tfvars            # Variable values
+├── terraform.tfvars.example    # Example variable configuration
 ├── generated.tf.backup         # Legacy monolithic config (backup)
-└── imports.tf.old              # Original import blocks (backup)
+└── imports.tf.backup           # Original import blocks (backup)
 ```
 
 ## Terraform Modules
@@ -64,8 +69,13 @@ internal-spa/
 
 #### `modules/compute/`
 - Lambda function packaging and deployment
-- IAM roles with least-privilege policies
-- Four Lambda functions for different operations
+- IAM roles with **least-privilege policies** for enhanced security
+- Four Lambda functions for different operations:
+  - `DirectS3Upload`: Minimal S3 permissions (ListAllMyBuckets, PutObject)
+  - `AdminFileManager`: File operations (List, Get, Put, Delete, GetObjectAttributes)
+  - `BucketAdministrator`: Bucket management operations only
+  - `ListS3Buckets`: Read-only bucket listing
+- Dynamic CloudWatch logging policies with region/account-specific ARNs
 
 #### `modules/storage/`
 - S3 bucket for frontend hosting
@@ -109,7 +119,9 @@ terraform state mv aws_s3_bucket.spa_bucket module.storage.aws_s3_bucket.spa_buc
 - **File Management**: List, delete, and move files between buckets
 - **Bucket Administration**: Create buckets, set policies, configure lifecycle rules
 - **Secure Access**: Private network access via ALB and S3 VPC endpoint
-- **Auto-Discovery**: Automatically discovers and manages buckets with `spa-s3-` prefix
+- **Auto-Discovery**: Automatically discovers and manages buckets with `spa-s3-` prefix  
+- **Security Compliance**: Implements Sentinel policies for IAM and encryption governance
+- **Least-Privilege Access**: Function-specific IAM policies with minimal required permissions
 
 ## API Endpoints
 
@@ -125,39 +137,20 @@ terraform state mv aws_s3_bucket.spa_bucket module.storage.aws_s3_bucket.spa_buc
 
 This project implements **Sentinel policies** for automated compliance and security validation.
 
-### CIS Policies
+### Current Policies
 
+#### **IAM Wildcard Restriction**
+- **Enforcement Level**: `soft-mandatory`
+- **Validations**:
+  - Blocks wildcards: `*`, `s3:*`, `iam:*`, `ec2:*`, `lambda:*`
+  - Scans IAM policies, role policies, and assume role policies
 
-1. **EC2 Security Group Traffic Restriction**
-   - Prevents unrestricted ingress traffic (0.0.0.0/0)
-   - Ensures least-privilege network access
-
-2. **EBS Encryption Enabled**
-   - Requires encryption for EBS volumes
-   - Protects data at rest
-
-3. **S3 Block Public Access (Account Level)**
-   - Prevents accidental public S3 exposure
-   - Account-wide protection
-
-4. **S3 Block Public Access (Bucket Level)**
-   - Bucket-specific public access blocking
-   - ✅ **Already compliant** with your current configuration
-
-5. **IAM No Admin Privileges**
-   - Prevents overly permissive IAM policies
-   - Enforces least-privilege access
-
-### Policy Configuration
-
-```hcl
-# All policies set to "advisory" enforcement level
-# Provides warnings without blocking deployments
-enforcement_level = "advisory"
-```
-
-For detailed policy information, see [`sentinel/README.md`](sentinel/README.md).
-
+#### **S3 Encryption Required**
+- **Enforcement Level**: `soft-mandatory`
+- **Validations**:
+  - Requires S3 server-side encryption configuration
+  - Validates encryption before deployment
+  
 ## Deployment
 
 ### Prerequisites
@@ -188,6 +181,8 @@ For detailed policy information, see [`sentinel/README.md`](sentinel/README.md).
    terraform apply
    ```
 
+   **Note**: During deployment, Terraform will evaluate Sentinel policies for security compliance. All policies must pass for successful deployment.
+
 5. **Upload Frontend Files**:
    ```bash
    aws s3 sync frontend/ s3://your-domain-name/
@@ -195,11 +190,32 @@ For detailed policy information, see [`sentinel/README.md`](sentinel/README.md).
 
 ### Required AWS Permissions
 
-The Lambda functions require the following S3 permissions:
-- `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject`
-- `s3:ListBucket`, `s3:CreateBucket`, `s3:DeleteBucket`
-- `s3:GetBucketPolicy`, `s3:PutBucketPolicy`
-- `s3:PutLifecycleConfiguration`
+The Lambda functions now use **least-privilege IAM policies** with these specific permissions:
+
+#### DirectS3Upload Function
+- `s3:ListAllMyBuckets` - Discover available buckets
+- `s3:PutObject` - Upload files to target bucket
+- `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents` - CloudWatch logging
+
+#### AdminFileManager Function  
+- `s3:ListAllMyBuckets` - Bucket discovery
+- `s3:ListBucket` - List objects in bucket
+- `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject` - File operations
+- `s3:GetObjectAttributes` - File metadata
+- `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents` - CloudWatch logging
+
+#### BucketAdministrator Function
+- `s3:CreateBucket`, `s3:DeleteBucket` - Bucket lifecycle
+- `s3:GetBucketPolicy`, `s3:PutBucketPolicy`, `s3:DeleteBucketPolicy` - Policy management
+- `s3:GetBucketLifecycleConfiguration`, `s3:PutBucketLifecycleConfiguration` - Lifecycle rules
+- `s3:GetBucketCors`, `s3:PutBucketCors` - CORS configuration
+- `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents` - CloudWatch logging
+
+#### ListS3Buckets Function
+- `s3:ListAllMyBuckets` - List available buckets only
+- `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents` - CloudWatch logging
+
+**Note**: All permissions are scoped to the specific bucket `spa.chatwithjunle.com` except for bucket listing operations.
 
 ## Configuration
 
